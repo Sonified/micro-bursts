@@ -108,7 +108,6 @@
             background: #6eb5ff;
             border-radius: 3px;
             width: 0%;
-            transition: width 0.1s linear;
         }
         .time-labels {
             display: flex;
@@ -211,14 +210,17 @@
         <div class="data-time" id="dataTime3">Data time: 2013-02-14 00:00 UTC</div>
     </div>
 
-    <!-- PAD-CH1 -->
+    <h2 style="color:#fff; font-size:1.4rem; margin-top:1rem;">PAD-CH1 &mdash; Dosimeter</h2>
+    <p class="subtitle">Same time period, different instrument and rendering speeds</p>
+
+    <!-- PAD-CH1 2kHz -->
     <div class="player">
-        <div class="player-title">PAD-CH1 &mdash; Dosimeter</div>
+        <div class="player-title">PAD-CH1 @ 2kHz</div>
         <div class="info">
             <div>Instrument: <span>PAD-CH1</span></div>
             <div>Data Rate: <span>~0.09 Hz (10.86s)</span></div>
-            <div>Data Duration: <span>~23 hours</span></div>
-            <div>Samples: <span>7,958</span></div>
+            <div>Audio Rate: <span>2,000 Hz</span></div>
+            <div>Playback: <span>~4.0 seconds</span></div>
         </div>
         <canvas id="waveform4"></canvas>
         <div class="controls">
@@ -229,11 +231,36 @@
                 </div>
                 <div class="time-labels">
                     <span id="currentTime4">0:00</span>
-                    <span id="totalTime4">0:39</span>
+                    <span id="totalTime4">0:04</span>
                 </div>
             </div>
         </div>
         <div class="data-time" id="dataTime4">Data time: 2013-02-14 00:00 UTC</div>
+    </div>
+
+    <!-- PAD-CH1 4kHz -->
+    <div class="player">
+        <div class="player-title">PAD-CH1 @ 4kHz</div>
+        <div class="info">
+            <div>Instrument: <span>PAD-CH1</span></div>
+            <div>Data Rate: <span>~0.09 Hz (10.86s)</span></div>
+            <div>Audio Rate: <span>4,000 Hz</span></div>
+            <div>Playback: <span>~2.0 seconds</span></div>
+        </div>
+        <canvas id="waveform5"></canvas>
+        <div class="controls">
+            <button class="play-btn" id="playBtn5">&#9654;</button>
+            <div class="time-bar">
+                <div class="progress-container" id="progressBar5">
+                    <div class="progress-fill" id="progressFill5"></div>
+                </div>
+                <div class="time-labels">
+                    <span id="currentTime5">0:00</span>
+                    <span id="totalTime5">0:02</span>
+                </div>
+            </div>
+        </div>
+        <div class="data-time" id="dataTime5">Data time: 2013-02-14 00:00 UTC</div>
     </div>
 
     <footer>
@@ -362,18 +389,24 @@
                 animationId = requestAnimationFrame(animate);
             }
 
+            function seekTo(fraction) {
+                if (!audio.duration) return;
+                fraction = Math.max(0, Math.min(1, fraction));
+                audio.currentTime = fraction * audio.duration;
+                progressFill.style.width = (fraction * 100) + '%';
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+                dataTimeEl.textContent = getDataTime(audio.currentTime, audio.duration);
+                drawPlayhead();
+            }
+
             progressBar.addEventListener('click', (e) => {
                 const rect = progressBar.getBoundingClientRect();
-                const fraction = (e.clientX - rect.left) / rect.width;
-                audio.currentTime = fraction * audio.duration;
-                if (!isPlaying) drawPlayhead();
+                seekTo((e.clientX - rect.left) / rect.width);
             });
 
             canvas.addEventListener('click', (e) => {
                 const rect = canvas.getBoundingClientRect();
-                const fraction = (e.clientX - rect.left) / rect.width;
-                audio.currentTime = fraction * audio.duration;
-                if (!isPlaying) drawPlayhead();
+                seekTo((e.clientX - rect.left) / rect.width);
             });
 
             audio.addEventListener('loadedmetadata', () => {
@@ -415,11 +448,19 @@
         });
 
         createPlayer({
-            src: 'audio/pad_ch1_audified.wav',
+            src: 'audio/pad_ch1_2k.wav',
             canvas: 'waveform4', playBtn: 'playBtn4', progressFill: 'progressFill4',
             progressBar: 'progressBar4', currentTime: 'currentTime4',
             totalTime: 'totalTime4', dataTime: 'dataTime4',
             color: '#ff9f6e', dimColor: '#4a2a1a'
+        });
+
+        createPlayer({
+            src: 'audio/pad_ch1_4k.wav',
+            canvas: 'waveform5', playBtn: 'playBtn5', progressFill: 'progressFill5',
+            progressBar: 'progressBar5', currentTime: 'currentTime5',
+            totalTime: 'totalTime5', dataTime: 'dataTime5',
+            color: '#d4a8ed', dimColor: '#2a1a3a'
         });
     </script>
 </body>
