@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Microburst Audification</title>
+    <title>Microburst Audification — SAMPEX</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -93,24 +93,6 @@
         .time-bar {
             flex: 1;
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: #1a1a3a;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        .progress-fill {
-            height: 100%;
-            background: #6eb5ff;
-            border-radius: 3px;
-            width: 0%;
-        }
-        .time-labels {
-            display: flex;
             justify-content: space-between;
             font-size: 0.75rem;
             color: #666;
@@ -132,7 +114,7 @@
 </head>
 <body>
     <h1>Microburst Audification</h1>
-    <p class="subtitle">FIREBIRD-II &mdash; February 14, 2013</p>
+    <p class="subtitle">SAMPEX &mdash; February 14, 2013</p>
 
     <!-- FSPC1 Denoised -->
     <div class="player">
@@ -147,13 +129,8 @@
         <div class="controls">
             <button class="play-btn" id="playBtn1">&#9654;</button>
             <div class="time-bar">
-                <div class="progress-container" id="progressBar1">
-                    <div class="progress-fill" id="progressFill1"></div>
-                </div>
-                <div class="time-labels">
-                    <span id="currentTime1">0:00</span>
-                    <span id="totalTime1">0:37</span>
-                </div>
+                <span id="currentTime1">0:00</span>
+                <span id="totalTime1">0:37</span>
             </div>
         </div>
         <div class="data-time" id="dataTime1">Data time: 2013-02-14 00:00 UTC</div>
@@ -172,13 +149,8 @@
         <div class="controls">
             <button class="play-btn" id="playBtn2">&#9654;</button>
             <div class="time-bar">
-                <div class="progress-container" id="progressBar2">
-                    <div class="progress-fill" id="progressFill2"></div>
-                </div>
-                <div class="time-labels">
-                    <span id="currentTime2">0:00</span>
-                    <span id="totalTime2">0:37</span>
-                </div>
+                <span id="currentTime2">0:00</span>
+                <span id="totalTime2">0:37</span>
             </div>
         </div>
         <div class="data-time" id="dataTime2">Data time: 2013-02-14 00:00 UTC</div>
@@ -198,13 +170,8 @@
         <div class="controls">
             <button class="play-btn" id="playBtn3">&#9654;</button>
             <div class="time-bar">
-                <div class="progress-container" id="progressBar3">
-                    <div class="progress-fill" id="progressFill3"></div>
-                </div>
-                <div class="time-labels">
-                    <span id="currentTime3">0:00</span>
-                    <span id="totalTime3">0:37</span>
-                </div>
+                <span id="currentTime3">0:00</span>
+                <span id="totalTime3">0:37</span>
             </div>
         </div>
         <div class="data-time" id="dataTime3">Data time: 2013-02-14 00:00 UTC</div>
@@ -226,13 +193,8 @@
         <div class="controls">
             <button class="play-btn" id="playBtn4">&#9654;</button>
             <div class="time-bar">
-                <div class="progress-container" id="progressBar4">
-                    <div class="progress-fill" id="progressFill4"></div>
-                </div>
-                <div class="time-labels">
-                    <span id="currentTime4">0:00</span>
-                    <span id="totalTime4">0:04</span>
-                </div>
+                <span id="currentTime4">0:00</span>
+                <span id="totalTime4">0:04</span>
             </div>
         </div>
         <div class="data-time" id="dataTime4">Data time: 2013-02-14 00:00 UTC</div>
@@ -251,20 +213,15 @@
         <div class="controls">
             <button class="play-btn" id="playBtn5">&#9654;</button>
             <div class="time-bar">
-                <div class="progress-container" id="progressBar5">
-                    <div class="progress-fill" id="progressFill5"></div>
-                </div>
-                <div class="time-labels">
-                    <span id="currentTime5">0:00</span>
-                    <span id="totalTime5">0:02</span>
-                </div>
+                <span id="currentTime5">0:00</span>
+                <span id="totalTime5">0:02</span>
             </div>
         </div>
         <div class="data-time" id="dataTime5">Data time: 2013-02-14 00:00 UTC</div>
     </div>
 
     <footer>
-        Data: <a href="https://solar.spacescience.org/firebird.html">FIREBIRD-II</a> &mdash;
+        Data: <a href="https://izw1.caltech.edu/sampex/">SAMPEX</a> &mdash;
         Audification: Robert Alexander
     </footer>
 
@@ -272,8 +229,6 @@
         function createPlayer(config) {
             const audio = new Audio(config.src);
             const playBtn = document.getElementById(config.playBtn);
-            const progressFill = document.getElementById(config.progressFill);
-            const progressBar = document.getElementById(config.progressBar);
             const currentTimeEl = document.getElementById(config.currentTime);
             const totalTimeEl = document.getElementById(config.totalTime);
             const dataTimeEl = document.getElementById(config.dataTime);
@@ -322,13 +277,18 @@
                 }
             }
 
-            async function drawWaveform() {
+            function resetCanvas() {
                 const dpr = window.devicePixelRatio || 1;
-                canvas.width = canvas.offsetWidth * dpr;
-                canvas.height = canvas.offsetHeight * dpr;
-                ctx.scale(dpr, dpr);
                 const w = canvas.offsetWidth;
                 const h = canvas.offsetHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                return { w, h };
+            }
+
+            async function drawWaveform() {
+                const { w, h } = resetCanvas();
                 if (!waveformData) {
                     try {
                         const response = await fetch(config.src);
@@ -349,21 +309,31 @@
 
             function drawPlayhead() {
                 if (!audio.duration || !waveformData) return;
-                const dpr = window.devicePixelRatio || 1;
-                const w = canvas.offsetWidth;
-                const h = canvas.offsetHeight;
-                ctx.clearRect(0, 0, w * dpr, h * dpr);
-                ctx.save();
-                ctx.scale(dpr, dpr);
+                const { w, h } = resetCanvas();
                 const playheadX = (audio.currentTime / audio.duration) * w;
                 drawWaveformBars(waveformData, w, h, playheadX);
+
+                // Progress bar overlay across bottom of waveform
+                const barH = 4;
+                const barY = h - barH;
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillRect(0, barY, w, barH);
+                ctx.fillStyle = color;
+                ctx.fillRect(0, barY, playheadX, barH);
+
+                // Playhead line
                 ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(playheadX, 0);
                 ctx.lineTo(playheadX, h);
                 ctx.stroke();
-                ctx.restore();
+
+                // Scrub handle
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(playheadX, h / 2, 5, 0, Math.PI * 2);
+                ctx.fill();
             }
 
             playBtn.addEventListener('click', () => {
@@ -381,8 +351,6 @@
 
             function animate() {
                 if (!isPlaying) return;
-                const progress = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
-                progressFill.style.width = progress + '%';
                 currentTimeEl.textContent = formatTime(audio.currentTime);
                 dataTimeEl.textContent = getDataTime(audio.currentTime, audio.duration);
                 drawPlayhead();
@@ -393,16 +361,10 @@
                 if (!audio.duration) return;
                 fraction = Math.max(0, Math.min(1, fraction));
                 audio.currentTime = fraction * audio.duration;
-                progressFill.style.width = (fraction * 100) + '%';
                 currentTimeEl.textContent = formatTime(audio.currentTime);
                 dataTimeEl.textContent = getDataTime(audio.currentTime, audio.duration);
                 drawPlayhead();
             }
-
-            progressBar.addEventListener('click', (e) => {
-                const rect = progressBar.getBoundingClientRect();
-                seekTo((e.clientX - rect.left) / rect.width);
-            });
 
             canvas.addEventListener('click', (e) => {
                 const rect = canvas.getBoundingClientRect();
@@ -425,40 +387,35 @@
 
         createPlayer({
             src: 'audio/microbursts_audified_denoise.wav',
-            canvas: 'waveform1', playBtn: 'playBtn1', progressFill: 'progressFill1',
-            progressBar: 'progressBar1', currentTime: 'currentTime1',
+            canvas: 'waveform1', playBtn: 'playBtn1', currentTime: 'currentTime1',
             totalTime: 'totalTime1', dataTime: 'dataTime1',
             color: '#6eb5ff', dimColor: '#2a3a5a'
         });
 
         createPlayer({
             src: 'audio/microbursts_audified_denoise_more.wav',
-            canvas: 'waveform2', playBtn: 'playBtn2', progressFill: 'progressFill2',
-            progressBar: 'progressBar2', currentTime: 'currentTime2',
+            canvas: 'waveform2', playBtn: 'playBtn2', currentTime: 'currentTime2',
             totalTime: 'totalTime2', dataTime: 'dataTime2',
             color: '#8ed4a8', dimColor: '#1a3a2a'
         });
 
         createPlayer({
             src: 'audio/microbursts_audified.wav',
-            canvas: 'waveform3', playBtn: 'playBtn3', progressFill: 'progressFill3',
-            progressBar: 'progressBar3', currentTime: 'currentTime3',
+            canvas: 'waveform3', playBtn: 'playBtn3', currentTime: 'currentTime3',
             totalTime: 'totalTime3', dataTime: 'dataTime3',
             color: '#ff6b6b', dimColor: '#3a1a1a'
         });
 
         createPlayer({
             src: 'audio/pad_ch1_2k.wav',
-            canvas: 'waveform4', playBtn: 'playBtn4', progressFill: 'progressFill4',
-            progressBar: 'progressBar4', currentTime: 'currentTime4',
+            canvas: 'waveform4', playBtn: 'playBtn4', currentTime: 'currentTime4',
             totalTime: 'totalTime4', dataTime: 'dataTime4',
             color: '#ff9f6e', dimColor: '#4a2a1a'
         });
 
         createPlayer({
             src: 'audio/pad_ch1_4k.wav',
-            canvas: 'waveform5', playBtn: 'playBtn5', progressFill: 'progressFill5',
-            progressBar: 'progressBar5', currentTime: 'currentTime5',
+            canvas: 'waveform5', playBtn: 'playBtn5', currentTime: 'currentTime5',
             totalTime: 'totalTime5', dataTime: 'dataTime5',
             color: '#d4a8ed', dimColor: '#2a1a3a'
         });
