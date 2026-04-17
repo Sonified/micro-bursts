@@ -34,7 +34,44 @@
             padding: 1.5rem;
             width: 100%;
             max-width: 750px;
+            position: relative;
         }
+        .download-btn {
+            position: absolute;
+            right: 0.75rem;
+            bottom: 0.75rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6eb5ff;
+            opacity: 0.5;
+            text-decoration: none;
+            transition: opacity 0.2s, background 0.2s;
+        }
+        .download-btn:hover { opacity: 1; background: rgba(110,181,255,0.12); }
+        .download-btn svg { width: 16px; height: 16px; display: block; }
+        .download-btn::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: 50%;
+            bottom: 100%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            background: #1a1a3a;
+            color: #e0e0e0;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            border: 1px solid #2a2a4a;
+        }
+        .download-btn:hover::after { opacity: 1; }
         .player-title {
             font-size: 1.1rem;
             color: #fff;
@@ -242,8 +279,7 @@
 
 
     <footer>
-        Data: <a href="https://izw1.caltech.edu/sampex/">SAMPEX</a> &mdash;
-        Robert Alexander
+        Data: <a href="https://izw1.caltech.edu/sampex/">SAMPEX</a>
     </footer>
 
     <script>
@@ -263,6 +299,17 @@
             const speedSlider = document.getElementById(config.speed);
             const speedValEl = document.getElementById(config.speedVal);
             const storageKey = 'speed_' + config.speed;
+
+            const dl = document.createElement('a');
+            dl.className = 'download-btn';
+            dl.href = config.src;
+            dl.download = '';
+            const fileName = config.src.split('/').pop();
+            dl.title = 'Download ' + fileName;
+            dl.setAttribute('aria-label', 'Download ' + fileName);
+            dl.setAttribute('data-tip', 'Download ' + fileName);
+            dl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>';
+            playBtn.closest('.player').appendChild(dl);
 
             // Logarithmic: 0=0.1x, 50=1x, 100=5x
             const minRate = 0.1, midRate = 1, maxRate = 5;
@@ -458,28 +505,28 @@
         }
 
         createPlayer({
-            src: 'audio/microbursts_audified_denoise.wav',
+            src: 'audio/fspc1_2013-02-14_microbursts_denoise.wav',
             canvas: 'waveform1', playBtn: 'playBtn1', currentTime: 'currentTime1',
             totalTime: 'totalTime1', dataTime: 'dataTime1', speed: 'speed1', speedVal: 'speedVal1',
             color: '#6eb5ff', dimColor: '#2a3a5a'
         });
 
         createPlayer({
-            src: 'audio/microbursts_audified_denoise_more.wav',
+            src: 'audio/fspc1_2013-02-14_microbursts_denoise-strong.wav',
             canvas: 'waveform2', playBtn: 'playBtn2', currentTime: 'currentTime2',
             totalTime: 'totalTime2', dataTime: 'dataTime2', speed: 'speed2', speedVal: 'speedVal2',
             color: '#8ed4a8', dimColor: '#1a3a2a'
         });
 
         createPlayer({
-            src: 'audio/microbursts_audified.wav',
+            src: 'audio/fspc1_2013-02-14_microbursts_raw.wav',
             canvas: 'waveform3', playBtn: 'playBtn3', currentTime: 'currentTime3',
             totalTime: 'totalTime3', dataTime: 'dataTime3', speed: 'speed3', speedVal: 'speedVal3',
             color: '#ff6b6b', dimColor: '#3a1a1a'
         });
 
         createPlayer({
-            src: 'audio/pad_ch1_2k_44k.wav',
+            src: 'audio/pad-ch1_2013-02-14_2kHz.wav',
             canvas: 'waveform4', playBtn: 'playBtn4', currentTime: 'currentTime4',
             totalTime: 'totalTime4', dataTime: 'dataTime4', speed: 'speed4', speedVal: 'speedVal4',
             color: '#ff9f6e', dimColor: '#4a2a1a'
