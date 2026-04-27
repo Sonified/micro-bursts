@@ -283,11 +283,46 @@
     </footer>
 
     <script>
+        const CACHE_DB = 'microburst-audio';
+        const CACHE_STORE = 'files';
+        function openCache() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(CACHE_DB, 1);
+                req.onupgradeneeded = () => req.result.createObjectStore(CACHE_STORE);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+        async function getCached(url) {
+            try {
+                const db = await openCache();
+                return await new Promise((resolve, reject) => {
+                    const tx = db.transaction(CACHE_STORE, 'readonly');
+                    const req = tx.objectStore(CACHE_STORE).get(url);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch { return null; }
+        }
+        async function setCache(url, arrayBuffer) {
+            try {
+                const db = await openCache();
+                const tx = db.transaction(CACHE_STORE, 'readwrite');
+                tx.objectStore(CACHE_STORE).put(arrayBuffer, url);
+            } catch {}
+        }
+
         let activePlayer = null;
 
         async function createPlayer(config) {
-            const audio = new Audio(config.src);
+            const audio = new Audio();
             audio.preservesPitch = false;
+            const cached = await getCached(config.src);
+            if (cached) {
+                audio.src = URL.createObjectURL(new Blob([cached], { type: 'audio/mpeg' }));
+            } else {
+                audio.src = config.src;
+            }
             const playBtn = document.getElementById(config.playBtn);
             const currentTimeEl = document.getElementById(config.currentTime);
             const totalTimeEl = document.getElementById(config.totalTime);
@@ -398,8 +433,12 @@
                 const { w, h } = resetCanvas();
                 if (!waveformData) {
                     try {
-                        const response = await fetch(config.src);
-                        const arrayBuffer = await response.arrayBuffer();
+                        let arrayBuffer = await getCached(config.src);
+                        if (!arrayBuffer) {
+                            const response = await fetch(config.src);
+                            arrayBuffer = await response.arrayBuffer();
+                            setCache(config.src, arrayBuffer.slice(0));
+                        }
                         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                         const decoded = await audioCtx.decodeAudioData(arrayBuffer);
                         waveformData = decoded.getChannelData(0);
