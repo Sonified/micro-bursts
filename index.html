@@ -285,7 +285,7 @@
     <script>
         let activePlayer = null;
 
-        function createPlayer(config) {
+        async function createPlayer(config) {
             const audio = new Audio(config.src);
             audio.preservesPitch = false;
             const playBtn = document.getElementById(config.playBtn);
@@ -454,9 +454,10 @@
                 if (activePlayer && activePlayer !== me) activePlayer.pause();
                 isPlaying = true;
                 activePlayer = me;
-                audio.play();
                 playBtn.innerHTML = '&#9646;&#9646;';
-                animate();
+                audio.play().then(() => {
+                    if (isPlaying) animate();
+                }).catch(() => {});
             }
 
             const me = { pause, toggle() { isPlaying ? pause() : play(); } };
@@ -488,8 +489,10 @@
 
             canvas.addEventListener('click', (e) => {
                 const rect = canvas.getBoundingClientRect();
+                const wasPlaying = isPlaying;
+                if (isPlaying) pause();
                 seekTo((e.clientX - rect.left) / rect.width);
-                if (!isPlaying) play();
+                play();
             });
 
             audio.addEventListener('loadedmetadata', () => {
@@ -500,37 +503,34 @@
                 pause();
             });
 
-            drawWaveform();
+            await drawWaveform();
             window.addEventListener('resize', drawWaveform);
         }
 
-        createPlayer({
-            src: 'audio/fspc1_2013-02-14_microbursts_denoise.wav',
-            canvas: 'waveform1', playBtn: 'playBtn1', currentTime: 'currentTime1',
-            totalTime: 'totalTime1', dataTime: 'dataTime1', speed: 'speed1', speedVal: 'speedVal1',
-            color: '#6eb5ff', dimColor: '#2a3a5a'
-        });
+        const players = [
+            { src: 'audio/fspc1_2013-02-14_microbursts_denoise.mp3',
+              canvas: 'waveform1', playBtn: 'playBtn1', currentTime: 'currentTime1',
+              totalTime: 'totalTime1', dataTime: 'dataTime1', speed: 'speed1', speedVal: 'speedVal1',
+              color: '#6eb5ff', dimColor: '#2a3a5a' },
+            { src: 'audio/fspc1_2013-02-14_microbursts_denoise-strong.mp3',
+              canvas: 'waveform2', playBtn: 'playBtn2', currentTime: 'currentTime2',
+              totalTime: 'totalTime2', dataTime: 'dataTime2', speed: 'speed2', speedVal: 'speedVal2',
+              color: '#8ed4a8', dimColor: '#1a3a2a' },
+            { src: 'audio/fspc1_2013-02-14_microbursts_raw.mp3',
+              canvas: 'waveform3', playBtn: 'playBtn3', currentTime: 'currentTime3',
+              totalTime: 'totalTime3', dataTime: 'dataTime3', speed: 'speed3', speedVal: 'speedVal3',
+              color: '#ff6b6b', dimColor: '#3a1a1a' },
+            { src: 'audio/pad-ch1_2013-02-14_2kHz.mp3',
+              canvas: 'waveform4', playBtn: 'playBtn4', currentTime: 'currentTime4',
+              totalTime: 'totalTime4', dataTime: 'dataTime4', speed: 'speed4', speedVal: 'speedVal4',
+              color: '#ff9f6e', dimColor: '#4a2a1a' },
+        ];
 
-        createPlayer({
-            src: 'audio/fspc1_2013-02-14_microbursts_denoise-strong.wav',
-            canvas: 'waveform2', playBtn: 'playBtn2', currentTime: 'currentTime2',
-            totalTime: 'totalTime2', dataTime: 'dataTime2', speed: 'speed2', speedVal: 'speedVal2',
-            color: '#8ed4a8', dimColor: '#1a3a2a'
-        });
-
-        createPlayer({
-            src: 'audio/fspc1_2013-02-14_microbursts_raw.wav',
-            canvas: 'waveform3', playBtn: 'playBtn3', currentTime: 'currentTime3',
-            totalTime: 'totalTime3', dataTime: 'dataTime3', speed: 'speed3', speedVal: 'speedVal3',
-            color: '#ff6b6b', dimColor: '#3a1a1a'
-        });
-
-        createPlayer({
-            src: 'audio/pad-ch1_2013-02-14_2kHz.wav',
-            canvas: 'waveform4', playBtn: 'playBtn4', currentTime: 'currentTime4',
-            totalTime: 'totalTime4', dataTime: 'dataTime4', speed: 'speed4', speedVal: 'speedVal4',
-            color: '#ff9f6e', dimColor: '#4a2a1a'
-        });
+        (async () => {
+            for (const config of players) {
+                await createPlayer(config);
+            }
+        })();
 
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
