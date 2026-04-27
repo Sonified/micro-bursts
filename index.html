@@ -430,22 +430,23 @@
             }
 
             let loadingAnim = null;
-            function startLoading() {
-                let x = 0;
+            let loadProgress = { loaded: 0, total: 0 };
+            function drawLoading() {
                 function frame() {
                     const { w, h } = resetCanvas();
-                    x = (x + 2) % w;
+                    const frac = loadProgress.total > 0 ? loadProgress.loaded / loadProgress.total : 0;
+                    const loadedKB = Math.round(loadProgress.loaded / 1024);
+                    const totalKB = Math.round(loadProgress.total / 1024);
+                    const sizeText = loadProgress.total > 0 ? ` (${loadedKB}/${totalKB} KB)` : '';
                     ctx.fillStyle = '#666';
                     ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('Loading audio...', w / 2, h / 2);
-                    const grad = ctx.createLinearGradient(x - 80, 0, x + 80, 0);
-                    grad.addColorStop(0, 'transparent');
-                    grad.addColorStop(0.5, color);
-                    grad.addColorStop(1, 'transparent');
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(x - 80, h - 2, 160, 2);
+                    ctx.fillText('Loading audio...' + sizeText, w / 2, h / 2);
+                    ctx.fillStyle = dimColor;
+                    ctx.fillRect(0, h - 2, w, 2);
+                    ctx.fillStyle = color;
+                    ctx.fillRect(0, h - 2, w * frac, 2);
                     loadingAnim = requestAnimationFrame(frame);
                 }
                 frame();
@@ -457,12 +458,30 @@
             async function drawWaveform() {
                 const { w, h } = resetCanvas();
                 if (!waveformData) {
-                    startLoading();
+                    drawLoading();
                     try {
                         let arrayBuffer = await getCached(config.src);
                         if (!arrayBuffer) {
                             const response = await fetch(config.src);
-                            arrayBuffer = await response.arrayBuffer();
+                            const total = parseInt(response.headers.get('content-length') || '0', 10);
+                            loadProgress.total = total;
+                            const reader = response.body.getReader();
+                            const chunks = [];
+                            let loaded = 0;
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                if (done) break;
+                                chunks.push(value);
+                                loaded += value.length;
+                                loadProgress.loaded = loaded;
+                            }
+                            arrayBuffer = new ArrayBuffer(loaded);
+                            const view = new Uint8Array(arrayBuffer);
+                            let offset = 0;
+                            for (const chunk of chunks) {
+                                view.set(chunk, offset);
+                                offset += chunk.length;
+                            }
                             setCache(config.src, arrayBuffer.slice(0));
                         }
                         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
